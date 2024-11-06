@@ -1,8 +1,5 @@
-id,name,price
-1,Toyota Avanza,300000
-2,Honda Brio,250000
-3,Suzuki Ertiga,280000
-4,Nissan X-Trail,350000
-5,Mitsubishi Pajero,500000
-6,tayoyo,200000
-9,cikoboy,10
+id,name,price,plate,stock
+1,Toyota Avanza,300000,B1234XYZ,3
+2,Honda Jazz,350000,B5678ABC,0
+3,Suzuki Ertiga,250000,B9876QWE,3
+4,Cikoboy,120,KT 2421 PAD,0

@@ -1,12 +1,2 @@
-username,car,days,total,date
-user1,Toyota Avanza,2,600000,
-user2,Honda Brio,3,750000,
-user1,Suzuki Ertiga,1,280000,
-natanpemberat,cikoboy,12,120,2024-11-05 13:38:04
-natanpemberat,cikoboy,10,100,2024-11-06 12:11:56
-natanpemberat,cikoboy,100,1000,2024-11-06 12:12:52
-natanpemberat,cikoboy,10,100,2024-11-06 12:13:35
-natanpemberat,cikoboy,12,120,2024-11-06 12:14:17
-natanpemberat,cikoboy,1,10,2024-11-06 12:16:05
-natanpemberat,cikoboy,12,120,2024-11-06 12:17:46
-natanpemberat,Toyota Avanza,120,36000000,2024-11-06 12:28:00
+username,car,days,total,date,plate,return_date
+daoa,Suzuki Ertiga,1,250000,2024-11-06 20:42:37,B9876QWE,2024-11-06 20:45:51

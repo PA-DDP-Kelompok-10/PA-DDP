@@ -34,6 +34,13 @@ def display_table(data, fieldnames):
         table.add_row([row.get(field, "") for field in fieldnames])
     print(table)
 
+def update_ids(file, id_field="id"):
+    data = read_csv(file)
+    for index, row in enumerate(data, start=1):
+        row[id_field] = str(index)  
+    fieldnames = data[0].keys() if data else []
+    write_csv(file, fieldnames, data)
+
 def confirm_password():
     while True:
         password = pwinput.pwinput("Masukkan password: ")
@@ -86,24 +93,25 @@ def add_car():
     print("|         Tambah Mobil       |")
     print("+----------------------------+")
     while True:
-        car_name = input("Masukkan Nama Mobil: ")
-        if car_name.isalpha():
+        car_name = input("Masukkan Nama Mobil: ").strip()
+        if car_name.replace(" ", "").isalpha():
             break
         else:
             print("Nama mobil hanya boleh menggunakan abjad, bukan huruf.")
     car_price = input("Harga Sewa per Hari: ")
     car_plate = input("Nomor Plat: ")
-    stock = input("Jumlah Stok: ")
+    stock = "tersedia"
 
     cars = read_csv(car_file)
-    cars.append({"id": str(len(cars)+1), "name": car_name, "price": car_price, "plate": car_plate, "stock": stock})
-    write_csv(car_file, ["id", "name", "price", "plate", "stock"], cars)
+    cars.append({"id": str(len(cars)+1), "name": car_name, "price": car_price, "plate": car_plate, "status": stock})
+    write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
+    update_ids(car_file)
     print("Mobil berhasil ditambahkan.")
 
 def list_cars():
     cars = read_csv(car_file)
     if cars:
-        display_table(cars, ["id", "name", "price", "plate", "stock"])
+        display_table(cars, ["id", "name", "price", "plate", "status"])
     else:
         print("Belum ada data mobil.")
 
@@ -115,7 +123,7 @@ def update_car():
     car_name = input("Masukkan nama mobil yang ingin diperbarui: ")
     new_car_name = input("Masukkan nama mobil baru: ")
     new_car_price = input("Masukkan harga baru: ")
-
+    new_car_stock = input("Masukkan stok yang tersedia: ")
     updated_rows = []
     found = False
 
@@ -123,7 +131,7 @@ def update_car():
         csv_reader = csv.reader(file)
         for row in csv_reader:
             if row[0] == car_name:
-                updated_rows.append([car_name, new_car_name, new_car_price])
+                updated_rows.append([car_name, new_car_name, new_car_price,new_car_stock])
                 found = True
                 print(f"Data {car_name} berhasil diperbarui.")
             else:
@@ -146,7 +154,8 @@ def delete_car():
     car_id = input("Masukkan ID Mobil yang ingin dihapus: ")
     cars = read_csv(car_file)
     cars = [car for car in cars if car["id"] != car_id]
-    write_csv(car_file, ["id", "name", "price"], cars)
+    write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
+    update_ids(car_file)
     print("Mobil berhasil dihapus.")
 
 def rent_car(user):
@@ -159,16 +168,16 @@ def rent_car(user):
     if any(t["return_date"] == "" for t in user_transactions):
         print("Anda masih memiliki mobil yang belum dikembalikan.")
         return
-
+    
     cars = read_csv(car_file)
-    available_cars = [car for car in cars if int(car["stock"]) > 0]
-    if not available_cars:
+    status_cars = [car for car in cars if car["status"] == "tersedia"]
+    if not status_cars:
         print("Tidak ada mobil yang tersedia untuk disewa.")
         return
 
-    display_table(available_cars, ["id", "name", "price", "plate", "stock"])
+    display_table(status_cars, ["id", "name", "price", "plate", "status"])
     car_id = input("Masukkan ID Mobil yang ingin disewa: ")
-    car = next((c for c in available_cars if c["id"] == car_id), None)
+    car = next((c for c in status_cars if c["id"] == car_id), None)
 
     if car:
         days = int(input("Berapa hari Anda ingin menyewa mobil? "))
@@ -189,8 +198,8 @@ def rent_car(user):
             })
             write_csv(transaction_file, ["username", "car", "days", "total", "date", "plate", "return_date"], transactions)
             
-            car["stock"] = str(int(car["stock"]) - 1)
-            write_csv(car_file, ["id", "name", "price", "plate", "stock"], cars)
+            car["status"] = "tidak tersedia"
+            write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
             
             accounts = read_csv(account_file)
             for acc in accounts:
@@ -235,13 +244,14 @@ def return_car(user):
         print("Tidak ada mobil yang perlu dikembalikan.")
         return
 
-    display_table(user_transactions, ["car", "plate", "days", "total", "date"])
+    display_table(user_transactions, ["username","car", "plate", "days", "total", "date"])
 
     
+    username = input("Masukkan nama peminjam: ")
     car_name = input("Masukkan nama mobil yang ingin dikembalikan: ")
     plate = input("Masukkan nomor plat mobil: ")
 
-    transaction = next((t for t in user_transactions if t["car"] == car_name and t["plate"] == plate), None)
+    transaction = next((t for t in user_transactions if user["username"] == username and t["car"] == car_name and t["plate"] == plate), None)
 
     if transaction:
         return_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -251,8 +261,8 @@ def return_car(user):
         cars = read_csv(car_file)
         for car in cars:
             if car["name"] == transaction["car"] and car["plate"] == transaction["plate"]:
-                car["stock"] = str(int(car["stock"]) + 1)
-        write_csv(car_file, ["id", "name", "price", "plate", "stock"], cars)
+                car["status"] = "tersedia"
+        write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
 
         print(f"Mobil {transaction['car']} berhasil dikembalikan pada {return_date}")
     else:

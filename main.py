@@ -1,6 +1,7 @@
 import csv
 from prettytable import PrettyTable
-from prettytable import from_csv
+from prettytable import from_csv    
+import time
 import pwinput
 from datetime import datetime
 
@@ -42,12 +43,18 @@ def update_ids(file, id_field="id"):
     write_csv(file, fieldnames, data)
 
 def confirm_password():
-    while True:
+    chance = 3
+    while chance > 0:
         password = pwinput.pwinput("Masukkan password: ")
         confirm_password = pwinput.pwinput("Konfirmasi password: ")
         if password == confirm_password:
             return password
-        print("Password tidak sama, silahkan coba lagi")
+        else : 
+            chance -= 1
+            print("Password tidak sama, silahkan coba lagi")
+        if chance == 0:
+            print("Kesempatan habis, silahkan registrasi ulang")
+            break
 
 def register():
     print("+----------------------------+")
@@ -60,7 +67,6 @@ def register():
             break
         else:
             print("Username hanya boleh terdiri dari huruf alfabet. Silakan coba lagi.")
-
     password = confirm_password()
     role = "user"
     balance = "100000"
@@ -80,13 +86,26 @@ def login():
     username = input("Masukkan Username: ")
     password = pwinput.pwinput("Masukkan Password: ")
     accounts = read_csv(account_file)
+    chance = 3
+    countdown = 30
 
-    for account in accounts:
-        if account["username"] == username and account["password"] == password:
-            print(f"Login berhasil! Selamat datang, {username}.")
-            return account
-    print("Username atau password salah.")
-    return None
+    while chance > 0:
+        for account in accounts:
+            if account["username"] == username and account["password"] == password:
+                print(f"Login berhasil! Selamat datang, {username}.")
+                return account
+        
+        chance -= 1
+        print("Username atau password salah.")
+        
+        if chance == 0:
+            print(f"Anda telah mencoba 3 kali. Silakan tunggu {countdown} detik.")
+            time.sleep(countdown)
+            chance = 3  
+            print("\nSilakan coba login kembali.\n")
+
+        username = input("Masukkan Username: ")
+        password = pwinput.pwinput("Masukkan Password: ")
 
 def add_car():
     print("+----------------------------+")
@@ -123,7 +142,7 @@ def update_car():
     car_name = input("Masukkan nama mobil yang ingin diperbarui: ")
     new_car_name = input("Masukkan nama mobil baru: ")
     new_car_price = input("Masukkan harga baru: ")
-    new_car_stock = input("Masukkan stok yang tersedia: ")
+    new_car_status = input("Masukkan status mobil: ")
     updated_rows = []
     found = False
 
@@ -131,7 +150,7 @@ def update_car():
         csv_reader = csv.reader(file)
         for row in csv_reader:
             if row[0] == car_name:
-                updated_rows.append([car_name, new_car_name, new_car_price,new_car_stock])
+                updated_rows.append([car_name, new_car_name, new_car_price,new_car_status])
                 found = True
                 print(f"Data {car_name} berhasil diperbarui.")
             else:
@@ -245,7 +264,6 @@ def return_car(user):
         return
 
     display_table(user_transactions, ["username","car", "plate", "days", "total", "date"])
-
     
     username = input("Masukkan nama peminjam: ")
     car_name = input("Masukkan nama mobil yang ingin dikembalikan: ")
@@ -361,7 +379,8 @@ def run():
                 register()
             elif choice == "exit":
                 print("Terima kasih telah menggunakan program ini")
-                break
+                return
+                exit
             else:
                 print("Opsi tidak valid.")
     except KeyboardInterrupt :

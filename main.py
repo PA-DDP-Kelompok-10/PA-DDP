@@ -3,7 +3,7 @@ from prettytable import PrettyTable
 from prettytable import from_csv    
 import time
 import pwinput
-from datetime import datetime
+from datetime import datetime, timedelta
 
 account_file = "accounts.csv"
 car_file = "cars.csv"
@@ -49,12 +49,12 @@ def confirm_password():
         confirm_password = pwinput.pwinput("Konfirmasi password: ")
         if password == confirm_password:
             return password
-        else : 
+        else: 
             chance -= 1
-            print("Password tidak sama, silahkan coba lagi")
+            print(f"Password tidak sama, silahkan coba lagi. {chance} kesempatan tersisa.")
         if chance == 0:
-            print("Kesempatan habis, silahkan registrasi ulang")
-            break
+            print("Kesempatan habis, silahkan registrasi ulang.")
+            return None
 
 def register():
     print("+----------------------------+")
@@ -67,17 +67,22 @@ def register():
             break
         else:
             print("Username hanya boleh terdiri dari huruf alfabet. Silakan coba lagi.")
+
     password = confirm_password()
+    
+    if password is None:
+        return
+
     role = "user"
     balance = "100000"
 
     accounts = read_csv(account_file)
-    if any(account["username"] == username for account in accounts):
-        print("Username sudah digunakan. Gunakan username lain.")
-    else:
+    if not any(account["username"] == username for account in accounts):
         accounts.append({"username": username, "password": password, "role": role, "balance": balance})
         write_csv(account_file, ["username", "password", "role", "balance"], accounts)
         print("Registrasi berhasil! Silakan login.")
+    else:
+        print("Username sudah digunakan. Gunakan username lain.")
 
 def login():
     print("+----------------------------+")
@@ -96,11 +101,13 @@ def login():
                 return account
         
         chance -= 1
-        print("Username atau password salah.")
+        print(f"Username atau password salah. {chance} kesempatan tersedia")
         
         if chance == 0:
-            print(f"Anda telah mencoba 3 kali. Silakan tunggu {countdown} detik.")
-            time.sleep(countdown)
+            for i in range(countdown, -1, -1):
+                print(f"Tunggu {i} detik. sebelum bisa login lagi", end="\r")
+                time.sleep(1)
+            
             chance = 3  
             print("\nSilakan coba login kembali.\n")
 
@@ -111,22 +118,24 @@ def add_car():
     print("+----------------------------+")
     print("|         Tambah Mobil       |")
     print("+----------------------------+")
-    while True:
-        car_name = input("Masukkan Nama Mobil: ").strip()
-        if car_name.replace(" ", "").isalpha():
-            break
-        else:
-            print("Nama mobil hanya boleh menggunakan abjad, bukan huruf.")
-    car_price = input("Harga Sewa per Hari: ")
-    car_plate = input("Nomor Plat: ")
-    stock = "tersedia"
+    try :
+        while True:
+            car_name = input("Masukkan Nama Mobil: ").strip()
+            if car_name.replace(" ", "").isalpha():
+                break
+            else:
+                print("Nama mobil hanya boleh menggunakan abjad, bukan huruf.")
+        car_price = int(input("Harga Sewa per Hari: "))
+        car_plate = input("Nomor Plat: ")
+        stock = "tersedia"
 
-    cars = read_csv(car_file)
-    cars.append({"id": str(len(cars)+1), "name": car_name, "price": car_price, "plate": car_plate, "status": stock})
-    write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
-    update_ids(car_file)
-    print("Mobil berhasil ditambahkan.")
-
+        cars = read_csv(car_file)
+        cars.append({"id": str(len(cars)+1), "name": car_name, "price": car_price, "plate": car_plate, "status": stock})
+        write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
+        update_ids(car_file)
+        print("Mobil berhasil ditambahkan.")
+    except ValueError :
+        print("Input berupa angka bukan berupa huruf")
 def list_cars():
     cars = read_csv(car_file)
     if cars:
@@ -138,32 +147,42 @@ def update_car():
     print("+----------------------------+")
     print("|         Update Mobil       |")
     print("+----------------------------+")
-    list_cars()
-    car_name = input("Masukkan nama mobil yang ingin diperbarui: ")
-    new_car_name = input("Masukkan nama mobil baru: ")
-    new_car_price = input("Masukkan harga baru: ")
-    new_car_status = input("Masukkan status mobil: ")
-    updated_rows = []
-    found = False
+    try :
+        list_cars()
+        car_id = int(input("Masukkan ID Mobil yang ingin diedit: "))
+        edit_car = read_csv(car_file)
+        cars = [c for c in edit_car if c["id"] == car_id]
+        if cars : 
+            new_car_name = input("Masukkan nama mobil baru: ")
+            new_car_price = int(input("Masukkan harga baru: "))
+            new_car_plate = input("Masukkan plat baru: ")
+            new_car_status = input("Masukkan status mobil: ")
+            updated_rows = []
+            found = False
 
-    with open(car_file, mode="r") as file:
-        csv_reader = csv.reader(file)
-        for row in csv_reader:
-            if row[0] == car_name:
-                updated_rows.append([car_name, new_car_name, new_car_price,new_car_status])
-                found = True
-                print(f"Data {car_name} berhasil diperbarui.")
-            else:
-                updated_rows.append(row)
+            with open(car_file, mode="r") as file:
+                csv_reader = csv.reader(file)
+                for row in csv_reader:
+                    if row[0] == car_id:
+                        updated_rows.append([new_car_name, new_car_name, new_car_price, new_car_plate,new_car_status])
+                        found = True
+                        print(f"Data mobil berhasil diperbarui.")
+                    else:
+                        updated_rows.append(row)
 
-    if not found:
-        print(f"Data dengan nama {new_car_name} tidak ditemukan.")
-        return
+            if not found:
+                print("Mobil tidak ditemukan.")
+            return
 
 
-    with open(car_file, mode="w", newline="") as file:
-        csv_writer = csv.writer(file)
-        csv_writer.writerows(updated_rows)
+        with open(car_file, mode="w", newline="") as file:
+            csv_writer = csv.writer(file)
+            csv_writer.writerows(updated_rows)
+
+        update_ids(car_file)
+
+    except ValueError :
+        print("input berupa angka bukan huruf")
 
 def delete_car():
     print("+----------------------------+")
@@ -181,6 +200,7 @@ def rent_car(user):
     print("+----------------------------+")
     print("|         Rental Mobil       |")
     print("+----------------------------+")
+    
     transactions = read_csv(transaction_file)
     user_transactions = [t for t in transactions if t["username"] == user["username"]]
     
@@ -190,11 +210,13 @@ def rent_car(user):
     
     cars = read_csv(car_file)
     status_cars = [car for car in cars if car["status"] == "tersedia"]
+    
     if not status_cars:
         print("Tidak ada mobil yang tersedia untuk disewa.")
         return
 
     display_table(status_cars, ["id", "name", "price", "plate", "status"])
+    
     car_id = input("Masukkan ID Mobil yang ingin disewa: ")
     car = next((c for c in status_cars if c["id"] == car_id), None)
 
@@ -204,6 +226,7 @@ def rent_car(user):
 
         if int(user["balance"]) >= total_price:
             user["balance"] = str(int(user["balance"]) - total_price)
+            
             transaction_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             transactions.append({
@@ -213,7 +236,7 @@ def rent_car(user):
                 "total": str(total_price),
                 "date": transaction_date,
                 "plate": car["plate"],
-                "return_date": ""
+                "return_date": (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
             })
             write_csv(transaction_file, ["username", "car", "days", "total", "date", "plate", "return_date"], transactions)
             
@@ -227,25 +250,20 @@ def rent_car(user):
             write_csv(account_file, ["username", "password", "role", "balance"], accounts)
 
             print("Rental berhasil.")
-            
-            #print(f"Transaksi berhasil! Total harga: Rp{total_price}.")
-            print("\n                       Rental Laju Sejahtera")
-            print("   Jl. Sambaliung, Sempaja Selatan Samarinda Utara, Indonesia    ")
+            print("\n                     Rental Laju Sejahtera")
+            print("   Jl. Sambaliung, Sempaja Selatan Samarinda Utara, Indonesia   ")
             print("                          Customer Service")
-            print("==================================================")
-            print(f"Nama Penyewa : {user["username"]}")
-            print("Merk mobil: ")
-            print(f"Lama Sewa: {days} hari")
-            print("Tanggal diambil:")
-            print("Tanggal dikembalikan:")
-            print("Biaya Sewa:")
-            print("Biaya Denda:") #ini belum denda jadi harusnya belum dihitung dalam total kan
-            print("Total Transaksi:")
-            print("Saldo Penyewa:") # Saldo awal user / atau ganti jadi "saldo saat ini"(sebelum bayar)
-            print("Saldo Penyewa saat ini:") # Salso setelah pembayaran / ganti "saldo setelah pembayaran"
-            print("==================================================")
+            print("================================================================")
+            print(f"Nama Penyewa         : {user["username"]}")
+            print(f"Merk mobil           : {car["name"]}")
+            print(f"Lama Sewa            : {days} hari")
+            print(f"Tanggal diambil      : {transaction_date}")
+            print(f"Tanggal dikembalikan : {datetime.now() + timedelta(days=days)}")
+            print(f"Biaya Sewa           : Rp{total_price}")
+            print(f"Total Transaksi      : Rp{total_price}")
+            print(f"Saldo Penyewa        : Rp{user["balance"]}")
+            print("================================================================")
             print("Terima kasih sudah bertransaksi dengan kami. Harap kembalikan tepat waktu")
-            print("Denda per")
 
         else:
             print("Saldo tidak mencukupi.")
@@ -379,8 +397,7 @@ def run():
                 register()
             elif choice == "exit":
                 print("Terima kasih telah menggunakan program ini")
-                return
-                exit
+                exit()
             else:
                 print("Opsi tidak valid.")
     except KeyboardInterrupt :
@@ -414,8 +431,7 @@ def admin_menu(user):
         elif choice == "6":
             view_user()
         elif choice == "7":
-            print("Fitur masih dikembangkan")
-            admin_menu(user)
+            add_voucher()
         elif choice == "8": 
             run()
         else:

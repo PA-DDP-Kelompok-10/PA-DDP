@@ -1,8 +1,13 @@
 import csv
-from prettytable import PrettyTable, from_csv
+import os
 import time
 import pwinput
+from prettytable import PrettyTable
 from datetime import datetime, timedelta
+from colorama import Fore, Back, Style, init
+
+os.system("cls")
+init()
 
 account_file = "accounts.csv"
 car_file = "cars.csv"
@@ -29,7 +34,25 @@ def write_csv(file, fieldnames, data):
 def display_table(data, fieldnames):
     if not data:
         print("Data tidak tersedia.")
-    table = PrettyTable(fieldnames)
+        return
+    translate = {
+        "username" : "Username",
+        "password" : "Password",
+        "role" : "Role",
+        "id": "ID",
+        "nama": "Nama Mobil",
+        "harga": "Harga Sewa",
+        "no plat": "Nomor Plat",
+        "status": "Status",
+        "balance": "Saldo",
+        "days": "Lama Sewa (hari)",
+        "total": "Total Biaya",
+        "date": "Tanggal Sewa",
+        "return_date": "Tanggal Kembali",
+        "plate": "Nomor Plat",
+        "car": "Mobil"
+    }
+    table = PrettyTable([translate.get(field, field) for field in fieldnames])
     for row in data:
         table.add_row([row.get(field, "") for field in fieldnames])
     print(table)
@@ -56,6 +79,7 @@ def confirm_password():
             return None
 
 def register():
+    os.system("cls")
     print("+----------------------------+")
     print("|        Menu Register       |")
     print("+----------------------------+")
@@ -84,6 +108,7 @@ def register():
         print("Username sudah digunakan. Gunakan username lain.")
 
 def login():
+    os.system("cls")
     print("+----------------------------+")
     print("|         Menu Login         |")
     print("+----------------------------+")
@@ -96,9 +121,12 @@ def login():
     while chance > 0:
         for account in accounts:
             if account["username"] == username and account["password"] == password:
-                print(f"Login berhasil! Selamat datang, {username}.")
+                if account["role"].lower() == "admin":
+                    print(Fore.RED + f"Login berhasil! Selamat datang, {username}" + Style.RESET_ALL)
+                else:
+                    print(Fore.GREEN + f"Login berhasil! Selamat datang, {username}" + Style.RESET_ALL)
                 return account
-        
+            
         chance -= 1
         print(f"Username atau password salah. {chance} kesempatan tersedia")
         
@@ -118,12 +146,7 @@ def add_car():
     print("|         Tambah Mobil       |")
     print("+----------------------------+")
     try:
-        while True:
-            car_name = input("Masukkan Nama Mobil: ").strip()
-            if car_name.replace(" ", "").isalpha():
-                break
-            else:
-                print("Nama mobil hanya boleh menggunakan abjad.")
+        car_name = input("Masukkan Nama Mobil: ")
         car_price = int(input("Harga Sewa per Hari: "))
         car_plate = input("Nomor Plat: ")
         stock = "tersedia"
@@ -137,11 +160,23 @@ def add_car():
         print("Input berupa angka, bukan huruf.")
 
 def list_cars():
+    print("════════Data Mobil PT Rental Laju Sejahtera══════════")
     cars = read_csv(car_file)
     if cars:
         display_table(cars, ["id", "nama", "harga", "no plat", "status"])
+        sort_order = (input("Urutkan berdasarkan harga (1.termurah / 2. termahal) atau lewati (tekan Enter): "))
+        if sort_order == "1":
+            cars.sort(key=lambda x: int(x["harga"]))
+        elif sort_order == "2":
+            cars.sort(key=lambda x: int(x["harga"]), reverse=True)
+        else :
+            print("input tidak valid")
+            return
+        
+        display_table(cars, ["id", "nama", "harga", "no plat", "status"])
     else:
         print("Belum ada data mobil.")
+        
 
 def update_car():
     print("+----------------------------+")
@@ -311,19 +346,19 @@ def view_transactions():
     print("+----------------------------+")
     transactions = read_csv(transaction_file)
     if transactions:
-        with open(transaction_file, mode="r") as tf :
-            transaction = from_csv(tf)
-        print(transaction)
+        display_table(transactions, ["username", "car", "days","total", "date","plate","return_date"])
     else:
-        print("Belum ada transaksi.")
+        print("Belum ada data mobil.")
 
 def view_user():
     print("+----------------------------+")
     print("|         Daftar Akun        |")
     print("+----------------------------+")
-    with open(account_file, mode="r") as af :
-        account = from_csv(af)
-    print(account)
+    accounts = read_csv(account_file)
+    if accounts :
+        display_table(accounts, ["username", "password", "role", "balance"])
+    else :
+        print("Belum ada data user")
 
 def topup(user):
     print("+----------------------------+")
@@ -384,6 +419,7 @@ def main_menu():
     return input("Silahkan ketik(Login/Register/Exit): ").lower()
 
 def run():
+    os.system("cls")
     try :
         while True:
             choice = main_menu()
@@ -411,7 +447,7 @@ def admin_menu(user):
         table.add_row(["1","Tambah Mobil"])
         table.add_row(["2","Lihat Daftar Mobil"])
         table.add_row(["3","Hapus Mobil"])
-        table.add_row(["4","Lihat Riwayat Transaksi"])
+        table.add_row(["4","Lihat Transaksi Aktif"])
         table.add_row(["5","Edit Daftar Mobil"])
         table.add_row(["6","Lihat Daftar User"])
         table.add_row(["7","Tambah Voucher"])

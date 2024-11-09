@@ -1,10 +1,14 @@
 id,nama,harga,no plat,status
-1,Suzuki Jimny,400000,KT 7654 PAW,tidak tersedia
-2,Ambacar,200000,KT 2301 MW,tidak tersedia
-3,Toyota Avanza,120000,KT 7634 BAS,tidak tersedia
-4,BMW,500000,KT 4323 PAW,tidak tersedia
-5,Toyota Alphard,600000,KT 6546 BAI,tidak tersedia
-6,Mitsubishi Canter,500000,KT 7563 BAB,tidak tersedia
-7,Tesla Model III,450000,KT 2412 DAS,tidak tersedia
-8,McLaren,1200000,B 5242 ASS,tersedia
-9,Buggati,750000,KT 3432 BBH,tersedia
+1,Ambacar,200000,KT 2301 MW,tidak tersedia
+2,Toyota Avanza,120000,KT 7634 BAS,tidak tersedia
+3,BMW,500000,KT 4323 PAW,tidak tersedia
+4,Toyota Alphard,600000,KT 6546 BAI,tidak tersedia
+5,Mitsubishi Canter,500000,KT 7563 BAB,tidak tersedia
+6,Tesla Model III,450000,KT 2412 DAS,tidak tersedia
+7,McLaren,1200000,B 5242 ASS,tersedia
+8,Buggati,750000,KT 3432 BBH,tersedia
+9,Nissan Skyline GTR,500000,KT 5342 CAM,tersedia
+10,Tesla Model X,670000,B 2341 HH,tersedia
+11,Hyundai Creta,650000,B 5323 DDP,tersedia
+12,Palisade,780000,KT 4422 BAQ,tersedia
+13,Toyota Fortuner,800000,KT 1410,tersedia

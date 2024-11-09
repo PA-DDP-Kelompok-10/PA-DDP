@@ -159,34 +159,109 @@ def add_car():
     except ValueError:
         print("Input berupa angka, bukan huruf.")
 
-def list_cars(user):
+def list_carss(user):
     print("════════Data Mobil PT Rental Laju Sejahtera══════════")
     cars = read_csv(car_file)
     if cars:
-        display_table(cars, ["id", "nama", "harga", "no plat", "status"])
-        print("Pilih Opsi :")
-        print("1. Searching")
-        print("2. Sorting")
-        print("3. Kembali ke menu")
+        
+        table = PrettyTable()
+        table.field_names = ["No", "Pilihan"]
+        table.add_row(["1","Cari Mobil"])
+        table.add_row(["2","Sorting Mobil"])
+        table.add_row(["3","Keluar Menu"])
+        print(table)
         opsi = input("Silahkan masukkan pilihan: ")
 
         if opsi == "1": 
-            print("sortingnya weee")
+            cars = [car for car in cars ]
+            search_query = input("Masukkan nama mobil yang ingin dicari (biarkan kosong jika tidak): ").lower()
+            if search_query:
+                cars = [car for car in cars if search_query in car["nama"].lower()]
+                print("Berikut ini adalah hasil pencarian anda:")
+                display_table(cars, ["id", "nama", "harga", "no plat", "status"])
+                list_carss(user)
+    
+            if not cars:
+                print("Tidak ada mobil yang sesuai dengan pencarian.")
+            return
+        
         elif opsi == "2":
-            sort_order = (input("Urutkan berdasarkan harga (1.termurah / 2. termahal) atau lewati (tekan Enter): "))
+            table = PrettyTable()
+            table.field_names = ["No", "Pilihan"]
+            table.add_row(["1","Termurah"])
+            table.add_row(["2","Termahal"])
+            table.add_row(["3","Lewati"])
+            print(table)
+            sort_order = (input("Silahkan masukkan pilihan: "))
             if sort_order == "1":
                 cars.sort(key=lambda x: int(x["harga"]))
             elif sort_order == "2":
                 cars.sort(key=lambda x: int(x["harga"]), reverse=True)
+            elif sort_order == "3":
+                next
             else :
                 print("input tidak valid")
                 return     
             display_table(cars, ["id", "nama", "harga", "no plat", "status"])
+            list_carss(user)
         elif opsi == "3" :
-            admin_menu(user)
+            user_menu(user)
         else : 
             print("Opsi tidak ada, silahkan masukkan yang ada")
-            list_cars
+            list_carss(user)
+    else:
+        print("Belum ada data mobil.")
+
+def list_cars():
+    print("════════Data Mobil PT Rental Laju Sejahtera══════════")
+    cars = read_csv(car_file)
+    if cars:
+        
+        table = PrettyTable()
+        table.field_names = ["No", "Pilihan"]
+        table.add_row(["1","Cari Mobil"])
+        table.add_row(["2","Sorting Mobil"])
+        table.add_row(["3","Keluar Menu"])
+        print(table)
+        opsi = input("Silahkan masukkan pilihan: ")
+
+        if opsi == "1": 
+            cars = [car for car in cars ]
+            search_query = input("Masukkan nama mobil yang ingin dicari (biarkan kosong jika tidak): ").lower()
+            if search_query:
+                cars = [car for car in cars if search_query in car["nama"].lower()]
+                print("Berikut ini adalah hasil pencarian anda:")
+                display_table(cars, ["id", "nama", "harga", "no plat", "status"])
+                list_cars()
+    
+            if not cars:
+                print("Tidak ada mobil yang sesuai dengan pencarian.")
+            return
+        
+        elif opsi == "2":
+            table = PrettyTable()
+            table.field_names = ["No", "Pilihan"]
+            table.add_row(["1","Termurah"])
+            table.add_row(["2","Termahal"])
+            table.add_row(["3","Lewati"])
+            print(table)
+            sort_order = (input("Silahkan masukkan pilihan: "))
+            if sort_order == "1":
+                cars.sort(key=lambda x: int(x["harga"]))
+            elif sort_order == "2":
+                cars.sort(key=lambda x: int(x["harga"]), reverse=True)
+            elif sort_order == "3":
+                next
+            else :
+                print("input tidak valid")
+                return     
+            display_table(cars, ["id", "nama", "harga", "no plat", "status"])
+            list_cars()
+        elif opsi == "3" :
+            admin_menu()
+        else : 
+            print("Opsi tidak ada, silahkan masukkan yang ada")
+            list_cars()
     else:
         print("Belum ada data mobil.")
         
@@ -247,16 +322,28 @@ def rent_car(user):
     search_query = input("Masukkan nama mobil yang ingin dicari (biarkan kosong jika tidak): ").lower()
     if search_query:
         status_cars = [car for car in status_cars if search_query in car["nama"].lower()]
-    
+        print("Berikut adalah hasil pencarian anda:")
+        display_table(status_cars, ["id", "nama", "harga", "no plat", "status"])
     if not status_cars:
         print("Tidak ada mobil yang sesuai dengan pencarian.")
         return
 
-    sort_order = input("Urutkan berdasarkan harga (asc/desc) atau lewati (tekan Enter): ").lower()
-    if sort_order == "asc":
+    table = PrettyTable()
+    table.field_names = ["No", "Pilihan"]
+    table.add_row(["1","Termurah"])
+    table.add_row(["2","Termahal"])
+    table.add_row(["3","Lewati"])
+    print(table)
+    sort_order = (input("Silahkan masukkan pilihan: "))
+    if sort_order == "1":
         status_cars.sort(key=lambda x: int(x["harga"]))
-    elif sort_order == "desc":
+    elif sort_order == "2":
         status_cars.sort(key=lambda x: int(x["harga"]), reverse=True)
+    elif sort_order == "3":
+        next
+    else :
+        print("input tidak valid")
+        return
 
     display_table(status_cars, ["id", "nama", "harga", "no plat", "status"])
 
@@ -300,14 +387,14 @@ def rent_car(user):
             print("   Jl. Sambaliung, Sempaja Selatan Samarinda Utara, Indonesia   ")
             print("                          Customer Service")
             print("================================================================")
-            print(f"Nama Penyewa         : {user["username"]}")
-            print(f"Merk mobil           : {car["nama"]}")
+            print(f"Nama Penyewa         : {user['username']}")
+            print(f"Merk mobil           : {car['nama']}")
             print(f"Lama Sewa            : {days} hari")
             print(f"Tanggal diambil      : {transaction_date}")
             print(f"Tanggal dikembalikan : {datetime.now() + timedelta(days=days)}")
             print(f"Biaya Sewa           : Rp{total_price}")
             print(f"Total Transaksi      : Rp{total_price}")
-            print(f"Saldo Penyewa        : Rp{user["balance"]}")
+            print(f"Saldo Penyewa        : Rp{user['balance']}")
             print("================================================================")
             print("Terima kasih sudah bertransaksi dengan kami. Harap kembalikan tepat waktu")
 
@@ -440,7 +527,7 @@ def run():
                 user = login()
                 if user:
                     if user["role"] == "admin":
-                        admin_menu(user)
+                        admin_menu()
                     else:
                         user_menu(user)
             elif choice == "register":
@@ -453,7 +540,7 @@ def run():
     except KeyboardInterrupt :
         print("Program dihentikan secara paksa")
         
-def admin_menu(user):
+def admin_menu():
     while True:
         table = PrettyTable()
         table.field_names = ["No", "Menu Admin"]
@@ -505,7 +592,7 @@ def user_menu(user):
         elif choice == "2":
             return_car(user)
         elif choice == "3":
-            list_cars()
+            list_carss(user)
         elif choice == "4":
             print(f"Saldo E-Money Anda: Rp{user['balance']}")
         elif choice == "5":

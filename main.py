@@ -1,6 +1,5 @@
 import csv
-from prettytable import PrettyTable
-from prettytable import from_csv    
+from prettytable import PrettyTable, from_csv
 import time
 import pwinput
 from datetime import datetime, timedelta
@@ -118,28 +117,29 @@ def add_car():
     print("+----------------------------+")
     print("|         Tambah Mobil       |")
     print("+----------------------------+")
-    try :
+    try:
         while True:
             car_name = input("Masukkan Nama Mobil: ").strip()
             if car_name.replace(" ", "").isalpha():
                 break
             else:
-                print("Nama mobil hanya boleh menggunakan abjad, bukan huruf.")
+                print("Nama mobil hanya boleh menggunakan abjad.")
         car_price = int(input("Harga Sewa per Hari: "))
         car_plate = input("Nomor Plat: ")
         stock = "tersedia"
 
         cars = read_csv(car_file)
-        cars.append({"id": str(len(cars)+1), "name": car_name, "price": car_price, "plate": car_plate, "status": stock})
-        write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
+        cars.append({"id": str(len(cars)+1), "nama": car_name, "harga": car_price, "no plat": car_plate, "status": stock})
+        write_csv(car_file, ["id", "nama", "harga", "no plat", "status"], cars)
         update_ids(car_file)
         print("Mobil berhasil ditambahkan.")
-    except ValueError :
-        print("Input berupa angka bukan berupa huruf")
+    except ValueError:
+        print("Input berupa angka, bukan huruf.")
+
 def list_cars():
     cars = read_csv(car_file)
     if cars:
-        display_table(cars, ["id", "name", "price", "plate", "status"])
+        display_table(cars, ["id", "nama", "harga", "no plat", "status"])
     else:
         print("Belum ada data mobil.")
 
@@ -147,42 +147,22 @@ def update_car():
     print("+----------------------------+")
     print("|         Update Mobil       |")
     print("+----------------------------+")
-    try :
+    try:
         list_cars()
-        car_id = int(input("Masukkan ID Mobil yang ingin diedit: "))
+        car_id = input("Masukkan ID Mobil yang ingin diedit: ")
         edit_car = read_csv(car_file)
-        cars = [c for c in edit_car if c["id"] == car_id]
-        if cars : 
-            new_car_name = input("Masukkan nama mobil baru: ")
-            new_car_price = int(input("Masukkan harga baru: "))
-            new_car_plate = input("Masukkan plat baru: ")
-            new_car_status = input("Masukkan status mobil: ")
-            updated_rows = []
-            found = False
-
-            with open(car_file, mode="r") as file:
-                csv_reader = csv.reader(file)
-                for row in csv_reader:
-                    if row[0] == car_id:
-                        updated_rows.append([new_car_name, new_car_name, new_car_price, new_car_plate,new_car_status])
-                        found = True
-                        print(f"Data mobil berhasil diperbarui.")
-                    else:
-                        updated_rows.append(row)
-
-            if not found:
-                print("Mobil tidak ditemukan.")
-            return
-
-
-        with open(car_file, mode="w", newline="") as file:
-            csv_writer = csv.writer(file)
-            csv_writer.writerows(updated_rows)
-
-        update_ids(car_file)
-
-    except ValueError :
-        print("input berupa angka bukan huruf")
+        car = next((c for c in edit_car if c["id"] == car_id), None)
+        if car:
+            car["nama"] = input("Masukkan nama mobil baru: ")
+            car["harga"] = int(input("Masukkan harga baru: "))
+            car["no plat"] = input("Masukkan plat baru: ")
+            car["status"] = input("Masukkan status mobil: ")
+            write_csv(car_file, ["id", "nama", "harga", "no plat", "status"], edit_car)
+            print("Data mobil berhasil diperbarui.")
+        else:
+            print("Mobil tidak ditemukan.")
+    except ValueError:
+        print("Input berupa angka, bukan huruf.")
 
 def delete_car():
     print("+----------------------------+")
@@ -192,7 +172,7 @@ def delete_car():
     car_id = input("Masukkan ID Mobil yang ingin dihapus: ")
     cars = read_csv(car_file)
     cars = [car for car in cars if car["id"] != car_id]
-    write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
+    write_csv(car_file, ["id", "nama", "harga", "no plat", "status"], cars)
     update_ids(car_file)
     print("Mobil berhasil dihapus.")
 
@@ -200,29 +180,44 @@ def rent_car(user):
     print("+----------------------------+")
     print("|         Rental Mobil       |")
     print("+----------------------------+")
-    
+
     transactions = read_csv(transaction_file)
     user_transactions = [t for t in transactions if t["username"] == user["username"]]
-    
+
     if any(t["return_date"] == "" for t in user_transactions):
         print("Anda masih memiliki mobil yang belum dikembalikan.")
         return
-    
+
     cars = read_csv(car_file)
     status_cars = [car for car in cars if car["status"] == "tersedia"]
-    
+
     if not status_cars:
         print("Tidak ada mobil yang tersedia untuk disewa.")
         return
 
-    display_table(status_cars, ["id", "name", "price", "plate", "status"])
+    display_table(status_cars, ["id", "nama", "harga", "no plat", "status"])
+    search_query = input("Masukkan nama mobil yang ingin dicari (biarkan kosong jika tidak): ").lower()
+    if search_query:
+        status_cars = [car for car in status_cars if search_query in car["nama"].lower()]
     
+    if not status_cars:
+        print("Tidak ada mobil yang sesuai dengan pencarian.")
+        return
+
+    sort_order = input("Urutkan berdasarkan harga (asc/desc) atau lewati (tekan Enter): ").lower()
+    if sort_order == "asc":
+        status_cars.sort(key=lambda x: int(x["harga"]))
+    elif sort_order == "desc":
+        status_cars.sort(key=lambda x: int(x["harga"]), reverse=True)
+
+    display_table(status_cars, ["id", "nama", "harga", "no plat", "status"])
+
     car_id = input("Masukkan ID Mobil yang ingin disewa: ")
     car = next((c for c in status_cars if c["id"] == car_id), None)
 
     if car:
         days = int(input("Berapa hari Anda ingin menyewa mobil? "))
-        total_price = int(car["price"]) * days
+        total_price = int(car["harga"]) * days
 
         if int(user["balance"]) >= total_price:
             user["balance"] = str(int(user["balance"]) - total_price)
@@ -231,31 +226,34 @@ def rent_car(user):
             
             transactions.append({
                 "username": user["username"],
-                "car": car["name"],
+                "car": car["nama"],
                 "days": str(days),
                 "total": str(total_price),
                 "date": transaction_date,
-                "plate": car["plate"],
+                "plate": car["no plat"],
                 "return_date": (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
             })
             write_csv(transaction_file, ["username", "car", "days", "total", "date", "plate", "return_date"], transactions)
             
             car["status"] = "tidak tersedia"
-            write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
+            write_csv(car_file, ["id", "nama", "harga", "no plat", "status"], cars)
             
             accounts = read_csv(account_file)
             for acc in accounts:
                 if acc["username"] == user["username"]:
                     acc["balance"] = user["balance"]
+                elif acc["username"] == "admin":
+                    acc["balance"] = str(int(acc["balance"]) + total_price)
             write_csv(account_file, ["username", "password", "role", "balance"], accounts)
 
             print("Rental berhasil.")
+
             print("\n                     Rental Laju Sejahtera")
             print("   Jl. Sambaliung, Sempaja Selatan Samarinda Utara, Indonesia   ")
             print("                          Customer Service")
             print("================================================================")
             print(f"Nama Penyewa         : {user["username"]}")
-            print(f"Merk mobil           : {car["name"]}")
+            print(f"Merk mobil           : {car["nama"]}")
             print(f"Lama Sewa            : {days} hari")
             print(f"Tanggal diambil      : {transaction_date}")
             print(f"Tanggal dikembalikan : {datetime.now() + timedelta(days=days)}")
@@ -270,39 +268,42 @@ def rent_car(user):
     else:
         print("ID mobil tidak valid.")
 
+
 def return_car(user):
     print("+----------------------------+")
     print("|      Kembalikan Mobil      |")
     print("+----------------------------+")
     transactions = read_csv(transaction_file)
-    user_transactions = [t for t in transactions if t["username"] == user["username"] and t["return_date"] == ""]
+    user_transactions = [t for t in transactions if t["username"] == user["username"] and t["return_date"] != ""]
 
     if not user_transactions:
         print("Tidak ada mobil yang perlu dikembalikan.")
         return
 
-    display_table(user_transactions, ["username","car", "plate", "days", "total", "date"])
-    
+    display_table(user_transactions, ["username", "car", "plate", "days", "total", "date"])
+
     username = input("Masukkan nama peminjam: ")
     car_name = input("Masukkan nama mobil yang ingin dikembalikan: ")
     plate = input("Masukkan nomor plat mobil: ")
 
-    transaction = next((t for t in user_transactions if user["username"] == username and t["car"] == car_name and t["plate"] == plate), None)
+    transaction = next((t for t in user_transactions if t["username"] == username and t["car"] == car_name and t["plate"] == plate), None)
 
     if transaction:
         return_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         transaction["return_date"] = return_date
-        write_csv(transaction_file, ["username", "car", "days", "total", "date", "plate", "return_date"], transactions)
+        updated_transactions = [t for t in transactions if not (t["username"] == username and t["car"] == car_name and t["plate"] == plate)]
+        write_csv(transaction_file, ["username", "car", "days", "total", "date", "plate", "return_date"], updated_transactions)
         
         cars = read_csv(car_file)
         for car in cars:
-            if car["name"] == transaction["car"] and car["plate"] == transaction["plate"]:
+            if car["nama"] == transaction["car"] and car["no plat"] == transaction["plate"]:
                 car["status"] = "tersedia"
-        write_csv(car_file, ["id", "name", "price", "plate", "status"], cars)
+        write_csv(car_file, ["id", "nama", "harga", "no plat", "status"], cars)
 
         print(f"Mobil {transaction['car']} berhasil dikembalikan pada {return_date}")
     else:
         print("Mobil atau nomor plat tidak ditemukan.")
+
 
 def view_transactions():
     print("+----------------------------+")

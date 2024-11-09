@@ -128,11 +128,11 @@ def login():
                 return account
             
         chance -= 1
-        print(f"Username atau password salah. {chance} kesempatan tersedia")
+        print(Fore.YELLOW + f"Username atau password salah. {chance} kesempatan tersedia" + Style.RESET_ALL)
         
         if chance == 0:
             for i in range(countdown, -1, -1):
-                print(f"Tunggu {i} detik. sebelum bisa login lagi", end="\r")
+                print(Fore.RED + f"Tunggu {i} detik. sebelum bisa login lagi", end="\r" + Style.RESET_ALL)
                 time.sleep(1)
             
             chance = 3  
@@ -159,21 +159,34 @@ def add_car():
     except ValueError:
         print("Input berupa angka, bukan huruf.")
 
-def list_cars():
+def list_cars(user):
     print("════════Data Mobil PT Rental Laju Sejahtera══════════")
     cars = read_csv(car_file)
     if cars:
         display_table(cars, ["id", "nama", "harga", "no plat", "status"])
-        sort_order = (input("Urutkan berdasarkan harga (1.termurah / 2. termahal) atau lewati (tekan Enter): "))
-        if sort_order == "1":
-            cars.sort(key=lambda x: int(x["harga"]))
-        elif sort_order == "2":
-            cars.sort(key=lambda x: int(x["harga"]), reverse=True)
-        else :
-            print("input tidak valid")
-            return
-        
-        display_table(cars, ["id", "nama", "harga", "no plat", "status"])
+        print("Pilih Opsi :")
+        print("1. Searching")
+        print("2. Sorting")
+        print("3. Kembali ke menu")
+        opsi = input("Silahkan masukkan pilihan: ")
+
+        if opsi == "1": 
+            print("sortingnya weee")
+        elif opsi == "2":
+            sort_order = (input("Urutkan berdasarkan harga (1.termurah / 2. termahal) atau lewati (tekan Enter): "))
+            if sort_order == "1":
+                cars.sort(key=lambda x: int(x["harga"]))
+            elif sort_order == "2":
+                cars.sort(key=lambda x: int(x["harga"]), reverse=True)
+            else :
+                print("input tidak valid")
+                return     
+            display_table(cars, ["id", "nama", "harga", "no plat", "status"])
+        elif opsi == "3" :
+            admin_menu(user)
+        else : 
+            print("Opsi tidak ada, silahkan masukkan yang ada")
+            list_cars
     else:
         print("Belum ada data mobil.")
         
